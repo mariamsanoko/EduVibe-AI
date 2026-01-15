@@ -9,36 +9,42 @@ interface AuthSystemProps {
 
 const AuthSystem: React.FC<AuthSystemProps> = ({ onAuthSuccess, onClose }) => {
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [method, setMethod] = useState<'email' | 'mobile'>('email');
   const [step, setStep] = useState<'input' | 'verify'>('input');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [code, setCode] = useState('');
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+
+  const handleGoogleLogin = () => {
+    setLoadingGoogle(true);
+    // Simulation d'une authentification Google
+    setTimeout(() => {
+      const googleUser: User = {
+        id: 'google_' + Math.random().toString(36).substr(2, 9),
+        email: isAdminMode ? 'admin@eduvibe.com' : 'user.google@gmail.com',
+        name: isAdminMode ? 'Admin Staff' : 'Utilisateur Google',
+        role: isAdminMode ? 'admin' : 'user',
+        phoneNumber: '06 00 00 00 00',
+        isAuthenticated: true,
+        is2FAVerified: true,
+        purchasedCourses: [],
+        invoices: [],
+        subscription: 'Free'
+      };
+      onAuthSuccess(googleUser);
+      setLoadingGoogle(false);
+    }, 1500);
+  };
 
   const handleStartAuth = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email || !phone || !name) return;
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
       setStep('verify');
-    }, 1500);
-  };
-
-  const handleGoogleLogin = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const mockUser: User = {
-        id: 'g' + Date.now(),
-        email: isAdminMode ? 'admin@eduvibe.com' : 'google.user@gmail.com',
-        name: isAdminMode ? 'Admin Google' : 'Google User',
-        role: isAdminMode ? 'admin' : 'user',
-        isAuthenticated: true,
-        is2FAVerified: true,
-        purchasedCourses: []
-      };
-      onAuthSuccess(mockUser);
-    }, 1200);
+    }, 1000);
   };
 
   const handleFinalVerify = (e: React.FormEvent) => {
@@ -47,35 +53,38 @@ const AuthSystem: React.FC<AuthSystemProps> = ({ onAuthSuccess, onClose }) => {
     setTimeout(() => {
       const mockUser: User = {
         id: 'u' + Date.now(),
-        email: method === 'email' ? email : `${phone}@mobile.com`,
-        name: method === 'email' ? email.split('@')[0] : 'User',
-        role: (email === 'admin@eduvibe.com' || isAdminMode) ? 'admin' : 'user',
-        phoneNumber: method === 'mobile' ? phone : undefined,
+        email: email,
+        name: name,
+        role: (email.includes('admin') || isAdminMode) ? 'admin' : 'user',
+        phoneNumber: phone,
         isAuthenticated: true,
         is2FAVerified: true,
-        purchasedCourses: []
+        purchasedCourses: [],
+        invoices: [],
+        subscription: 'Free'
       };
       onAuthSuccess(mockUser);
       setLoading(false);
-    }, 1500);
+    }, 1000);
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose}></div>
       
-      <div className={`relative w-full max-w-md rounded-[32px] p-8 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 transition-colors ${isAdminMode ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'}`}>
-        <div className="flex justify-center mb-6">
-          <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex">
+      <div className={`relative w-full max-w-lg rounded-[48px] p-10 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 transition-colors ${isAdminMode ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'}`}>
+        {/* Toggle Mode */}
+        <div className="flex justify-center mb-10">
+          <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl flex">
             <button 
               onClick={() => setIsAdminMode(false)}
-              className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${!isAdminMode ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-white'}`}
+              className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!isAdminMode ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-white'}`}
             >
-              Étudiant
+              Élève
             </button>
             <button 
               onClick={() => setIsAdminMode(true)}
-              className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${isAdminMode ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-indigo-400'}`}
+              className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${isAdminMode ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-indigo-400'}`}
             >
               Admin
             </button>
@@ -83,110 +92,99 @@ const AuthSystem: React.FC<AuthSystemProps> = ({ onAuthSuccess, onClose }) => {
         </div>
 
         {step === 'input' ? (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="text-center">
-              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-colors ${isAdminMode ? 'bg-indigo-500 text-white' : 'bg-indigo-600 text-white shadow-indigo-200'}`}>
-                {isAdminMode ? (
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeWidth="2" strokeLinecap="round"/></svg>
-                ) : (
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0012 20c4.083 0 7.674-2.43 9.377-5.926M9 11V9a3 3 0 016 0v2m-6 0h6" strokeWidth="2" strokeLinecap="round"/></svg>
-                )}
-              </div>
-              <h2 className="text-2xl font-black">{isAdminMode ? 'Portail Admin' : 'Rejoindre EduVibe'}</h2>
-              <p className={isAdminMode ? 'text-slate-400' : 'text-slate-500'}>
-                {isAdminMode ? 'Accès réservé aux gestionnaires' : 'Apprenez avec l\'IA'}
+              <h2 className="text-3xl font-black tracking-tight">{isAdminMode ? 'Accès Administrateur' : 'Rejoindre EduVibe'}</h2>
+              <p className={`mt-2 font-medium ${isAdminMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                Connectez-vous pour {isAdminMode ? 'gérer la plateforme' : 'commencer à apprendre'}
               </p>
             </div>
 
-            <button 
-              onClick={handleGoogleLogin}
-              className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-3 font-bold transition-all active:scale-95 ${isAdminMode ? 'border-slate-700 hover:bg-slate-800' : 'border-slate-200 hover:bg-slate-50 text-slate-700'}`}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Google Workspace
-            </button>
+            <div className="space-y-4">
+              <button 
+                onClick={handleGoogleLogin}
+                disabled={loadingGoogle || loading}
+                className={`w-full flex items-center justify-center gap-4 py-4 rounded-[24px] border font-black text-sm uppercase tracking-widest transition-all active:scale-95 ${
+                  isAdminMode 
+                  ? 'bg-white text-slate-900 border-white hover:bg-slate-100' 
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 shadow-sm'
+                }`}
+              >
+                {loadingGoogle ? (
+                  <div className={`w-5 h-5 border-2 rounded-full animate-spin ${isAdminMode ? 'border-slate-900/20 border-t-slate-900' : 'border-indigo-600/20 border-t-indigo-600'}`}></div>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" viewBox="0 0 48 48">
+                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"/>
+                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
+                    Google
+                  </>
+                )}
+              </button>
 
-            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-              <button 
-                onClick={() => setMethod('email')}
-                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${method === 'email' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500'}`}
-              >
-                E-mail
-              </button>
-              <button 
-                onClick={() => setMethod('mobile')}
-                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${method === 'mobile' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500'}`}
-              >
-                Mobile
-              </button>
+              <div className="flex items-center gap-4 py-2">
+                <div className={`flex-1 h-px ${isAdminMode ? 'bg-slate-800' : 'bg-slate-100'}`}></div>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[2px]">Ou par identifiants</span>
+                <div className={`flex-1 h-px ${isAdminMode ? 'bg-slate-800' : 'bg-slate-100'}`}></div>
+              </div>
             </div>
 
             <form onSubmit={handleStartAuth} className="space-y-4">
-              {method === 'email' ? (
-                <div className="space-y-4">
-                  <input 
-                    type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@eduvibe.com"
-                    className={`w-full px-5 py-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all ${isAdminMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
-                  />
-                  <input 
-                    type="password" required placeholder="Mot de passe"
-                    className={`w-full px-5 py-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all ${isAdminMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
-                  />
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <div className={`w-20 px-3 py-4 border rounded-2xl font-bold flex items-center justify-center ${isAdminMode ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>+33</div>
-                  <input 
-                    type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)}
-                    placeholder="06 12 34 56 78"
-                    className={`flex-1 px-5 py-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all ${isAdminMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
-                  />
-                </div>
-              )}
+              <input 
+                type="text" required value={name} onChange={(e) => setName(e.target.value)}
+                placeholder="Nom complet"
+                className={`w-full px-6 py-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold ${isAdminMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
+              />
+              <input 
+                type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                className={`w-full px-6 py-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold ${isAdminMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
+              />
+              <div className="flex gap-2">
+                <div className={`w-16 flex items-center justify-center rounded-2xl font-black text-xs ${isAdminMode ? 'bg-slate-900 text-slate-500' : 'bg-slate-50 text-slate-400'}`}>+33</div>
+                <input 
+                  type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Téléphone"
+                  className={`flex-1 px-6 py-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold ${isAdminMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
+                />
+              </div>
 
               <button 
-                type="submit" disabled={loading}
-                className="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-xl hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50"
+                type="submit" disabled={loading || loadingGoogle}
+                className="w-full py-5 bg-indigo-600 text-white font-black rounded-[24px] shadow-xl hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50 text-lg mt-6"
               >
-                {loading ? 'Connexion...' : 'S\'identifier'}
+                {loading ? 'Connexion...' : 'Continuer'}
               </button>
             </form>
           </div>
         ) : (
-          <form onSubmit={handleFinalVerify} className="space-y-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0012 20c4.083 0 7.674-2.43 9.377-5.926M9 11V9a3 3 0 016 0v2m-6 0h6"></path></svg>
-              </div>
-              <h2 className="text-2xl font-black">Double Facteur</h2>
-              <p className={isAdminMode ? 'text-slate-400' : 'text-slate-500'}>Code envoyé par SMS</p>
+          <form onSubmit={handleFinalVerify} className="space-y-8 text-center">
+            <div className="w-20 h-20 bg-emerald-500 text-white rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0012 20c4.083 0 7.674-2.43 9.377-5.926M9 11V9a3 3 0 016 0v2m-6 0h6"></path></svg>
             </div>
+            <h2 className="text-3xl font-black">Code de sécurité</h2>
+            <p className={`font-medium ${isAdminMode ? 'text-slate-400' : 'text-slate-500'}`}>Envoyé au +33 {phone}</p>
 
             <div className="flex justify-center gap-3">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
+              {[1, 2, 3, 4].map((i) => (
                 <input 
                   key={i} type="text" maxLength={1}
-                  className={`w-12 h-14 border rounded-xl text-center font-bold text-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all ${isAdminMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
-                  value={code[i-1] || ''}
-                  onChange={(e) => setCode(prev => prev + e.target.value)}
+                  className={`w-14 h-16 rounded-2xl text-center font-black text-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all ${isAdminMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
                 />
               ))}
             </div>
 
             <button 
               type="submit" disabled={loading}
-              className="w-full py-4 bg-emerald-500 text-white font-black rounded-2xl shadow-xl hover:bg-emerald-600 transition-all active:scale-95 disabled:opacity-50"
+              className="w-full py-5 bg-emerald-500 text-white font-black rounded-[24px] shadow-xl hover:bg-emerald-600 transition-all active:scale-95 disabled:opacity-50 text-lg"
             >
-              {loading ? 'Vérification...' : 'Valider l\'accès'}
+              {loading ? 'Vérification...' : 'Valider'}
             </button>
-
-            <button type="button" onClick={() => setStep('input')} className="w-full text-sm font-bold text-slate-400 hover:text-indigo-400">
+            
+            <button type="button" onClick={() => setStep('input')} className="block w-full text-xs font-black text-indigo-500 uppercase tracking-widest hover:underline">
               Retour
             </button>
           </form>

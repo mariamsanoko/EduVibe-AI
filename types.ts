@@ -9,6 +9,24 @@ export interface Lesson {
   isFreePreview?: boolean;
 }
 
+export interface Review {
+  id: string;
+  userId: string;
+  userName: string;
+  rating: number;
+  comment: string;
+  date: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
+
+export interface Invoice {
+  id: string;
+  courseTitle: string;
+  date: string;
+  amount: number;
+  paymentMethod: string;
+}
+
 export interface Course {
   id: string;
   title: string;
@@ -22,6 +40,8 @@ export interface Course {
   studentsCount: number;
   isFree: boolean;
   price?: number;
+  reviews: Review[];
+  status: 'draft' | 'published';
 }
 
 export interface SiteSettings {
@@ -31,6 +51,8 @@ export interface SiteSettings {
   footerText: string;
 }
 
+export type SubscriptionPlan = 'Free' | 'Pro' | 'Enterprise';
+
 export interface User {
   id: string;
   email: string;
@@ -39,7 +61,9 @@ export interface User {
   isAuthenticated: boolean;
   is2FAVerified: boolean;
   purchasedCourses: string[];
-  phoneNumber?: string;
+  invoices: Invoice[];
+  phoneNumber: string;
+  subscription: SubscriptionPlan;
 }
 
 export interface ChatMessage {

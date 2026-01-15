@@ -109,6 +109,23 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ course, onBack, user, onPay
       <div className="flex-1 flex flex-col min-w-0 bg-white">
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto p-8 lg:p-12">
+            {/* Breadcrumbs Navigation */}
+            <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[2px] text-slate-400 mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide pb-2">
+              <button 
+                onClick={onBack}
+                className="hover:text-indigo-600 transition-colors flex items-center gap-1.5 group"
+              >
+                <svg className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeWidth="4"/></svg>
+                Catalogue
+              </button>
+              <span className="text-slate-200">/</span>
+              <span className="text-slate-300">{course.category}</span>
+              <span className="text-slate-200">/</span>
+              <span className="max-w-[120px] sm:max-w-[200px] truncate">{course.title}</span>
+              <span className="text-slate-200">/</span>
+              <span className="text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">Leçon {currentLessonIndex + 1}</span>
+            </nav>
+
             {isLocked ? (
               <div className="bg-slate-50 rounded-[40px] p-12 text-center border-2 border-dashed border-slate-200">
                 <div className="w-24 h-24 bg-white rounded-3xl shadow-xl flex items-center justify-center mx-auto mb-8 text-indigo-600 animate-bounce">
