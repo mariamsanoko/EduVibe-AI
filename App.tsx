@@ -3,14 +3,22 @@ import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Home from './pages/Home';
 import CoursePlayer from './pages/CoursePlayer';
+import CourseDetails from './pages/CourseDetails';
 import Profile from './pages/Profile';
 import AuthSystem from './components/AuthSystem';
 import PaymentSystem from './components/PaymentSystem';
 import AdminDashboard from './components/AdminDashboard';
-import { Course, User } from './types';
+import { Course, User, SiteSettings } from './types';
 import { COURSES as INITIAL_COURSES } from './data/courses';
 
-type View = 'home' | 'player' | 'profile' | 'admin';
+type View = 'home' | 'player' | 'details' | 'profile' | 'admin';
+
+const DEFAULT_SETTINGS: SiteSettings = {
+  heroTitle: "Maîtrisez l'Automatisation avec Make, n8n & Google AI",
+  heroSubtitle: "Découvrez comment révolutionner votre flux de travail grâce au Vibe Coding et à l'intelligence artificielle de pointe.",
+  heroImage: "https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&q=80&w=2000",
+  footerText: "© 2024 EduVibe AI Learning. Tous droits réservés."
+};
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('home');
@@ -19,25 +27,22 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [courseToPay, setCourseToPay] = useState<Course | null>(null);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
-    // Load courses from localStorage or use initial ones
     const savedCourses = localStorage.getItem('edu_courses');
-    if (savedCourses) {
-      setCourses(JSON.parse(savedCourses));
-    } else {
-      setCourses(INITIAL_COURSES);
-    }
+    setCourses(savedCourses ? JSON.parse(savedCourses) : INITIAL_COURSES);
+
+    const savedSettings = localStorage.getItem('edu_settings');
+    if (savedSettings) setSiteSettings(JSON.parse(savedSettings));
 
     const savedUser = localStorage.getItem('edu_user');
     if (savedUser) {
       try {
         const parsed = JSON.parse(savedUser);
         setUser(parsed);
-        // Rediriger vers l'admin si déjà connecté
         if (parsed.role === 'admin') setCurrentView('admin');
       } catch (e) {
-        console.error("Erreur de parsing du user stocké");
         localStorage.removeItem('edu_user');
       }
     }
@@ -48,15 +53,16 @@ const App: React.FC = () => {
     localStorage.setItem('edu_courses', JSON.stringify(newCourses));
   };
 
+  const handleUpdateSettings = (newSettings: SiteSettings) => {
+    setSiteSettings(newSettings);
+    localStorage.setItem('edu_settings', JSON.stringify(newSettings));
+  };
+
   const handleAuthSuccess = (userData: User) => {
     setUser(userData);
     localStorage.setItem('edu_user', JSON.stringify(userData));
     setShowAuthModal(false);
-    
-    // Redirection automatique vers le dashboard si c'est un admin
-    if (userData.role === 'admin') {
-      setCurrentView('admin');
-    }
+    if (userData.role === 'admin') setCurrentView('admin');
   };
 
   const handleLogout = () => {
@@ -68,7 +74,7 @@ const App: React.FC = () => {
 
   const handleSelectCourse = (courseId: string) => {
     setSelectedCourseId(courseId);
-    setCurrentView('player');
+    setCurrentView('details');
   };
 
   const handlePaymentSuccess = (courseId: string) => {
@@ -87,12 +93,13 @@ const App: React.FC = () => {
 
   const currentCourse = courses.find(c => c.id === selectedCourseId);
 
-  // Vue Admin prioritaire
   if (currentView === 'admin' && user?.role === 'admin') {
     return (
       <AdminDashboard 
         courses={courses} 
         onUpdateCourses={handleUpdateCourses} 
+        siteSettings={siteSettings}
+        onUpdateSettings={handleUpdateSettings}
         onClose={() => setCurrentView('home')} 
       />
     );
@@ -109,9 +116,20 @@ const App: React.FC = () => {
       />
       
       {currentView === 'home' && (
-        <Home courses={courses} onSelectCourse={handleSelectCourse} />
+        <Home courses={courses} onSelectCourse={handleSelectCourse} siteSettings={siteSettings} />
       )}
       
+      {currentView === 'details' && currentCourse && (
+        <CourseDetails 
+          course={currentCourse} 
+          user={user}
+          onStartLearning={() => setCurrentView('player')}
+          onBuy={() => setCourseToPay(currentCourse)}
+          onLogin={() => setShowAuthModal(true)}
+          onBack={() => setCurrentView('home')}
+        />
+      )}
+
       {currentView === 'player' && currentCourse && (
         <CoursePlayer 
           course={currentCourse} 
@@ -149,7 +167,7 @@ const App: React.FC = () => {
             <a href="#" className="hover:text-indigo-600 transition-colors">CGU</a>
             <a href="#" className="hover:text-indigo-600 transition-colors">Aide</a>
           </div>
-          <p>© 2024 EduVibe AI Learning. Tous droits réservés.</p>
+          <p>{siteSettings.footerText}</p>
         </div>
       </footer>
     </div>

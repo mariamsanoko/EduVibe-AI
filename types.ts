@@ -6,7 +6,7 @@ export interface Lesson {
   duration: string;
   type: 'video' | 'text' | 'quiz';
   videoUrl?: string;
-  isFreePreview?: boolean; // Nouvelle propriété
+  isFreePreview?: boolean;
 }
 
 export interface Course {
@@ -22,6 +22,13 @@ export interface Course {
   studentsCount: number;
   isFree: boolean;
   price?: number;
+}
+
+export interface SiteSettings {
+  heroTitle: string;
+  heroSubtitle: string;
+  heroImage: string;
+  footerText: string;
 }
 
 export interface User {
