@@ -6,43 +6,69 @@ import CoursePlayer from './pages/CoursePlayer';
 import Profile from './pages/Profile';
 import AuthSystem from './components/AuthSystem';
 import PaymentSystem from './components/PaymentSystem';
+import AdminDashboard from './components/AdminDashboard';
 import { Course, User } from './types';
-import { COURSES } from './data/courses';
+import { COURSES as INITIAL_COURSES } from './data/courses';
 
-type View = 'home' | 'player' | 'profile';
+type View = 'home' | 'player' | 'profile' | 'admin';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('home');
+  const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [courseToPay, setCourseToPay] = useState<Course | null>(null);
 
   useEffect(() => {
+    // Load courses from localStorage or use initial ones
+    const savedCourses = localStorage.getItem('edu_courses');
+    if (savedCourses) {
+      setCourses(JSON.parse(savedCourses));
+    } else {
+      setCourses(INITIAL_COURSES);
+    }
+
     const savedUser = localStorage.getItem('edu_user');
-    if (savedUser) setUser(JSON.parse(savedUser));
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser);
+        setUser(parsed);
+        // Rediriger vers l'admin si déjà connecté
+        if (parsed.role === 'admin') setCurrentView('admin');
+      } catch (e) {
+        console.error("Erreur de parsing du user stocké");
+        localStorage.removeItem('edu_user');
+      }
+    }
   }, []);
+
+  const handleUpdateCourses = (newCourses: Course[]) => {
+    setCourses(newCourses);
+    localStorage.setItem('edu_courses', JSON.stringify(newCourses));
+  };
 
   const handleAuthSuccess = (userData: User) => {
     setUser(userData);
     localStorage.setItem('edu_user', JSON.stringify(userData));
     setShowAuthModal(false);
+    
+    // Redirection automatique vers le dashboard si c'est un admin
+    if (userData.role === 'admin') {
+      setCurrentView('admin');
+    }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('edu_user');
+    setCurrentView('home');
+    setSelectedCourseId(null);
   };
 
   const handleSelectCourse = (courseId: string) => {
-    const course = COURSES.find(c => c.id === courseId);
-    if (!course) return;
-
-    if (course.isFree || (user && user.purchasedCourses.includes(courseId))) {
-      setSelectedCourseId(courseId);
-      setCurrentView('player');
-    } else {
-      if (!user) {
-        setShowAuthModal(true);
-      } else {
-        setCourseToPay(course);
-      }
-    }
+    setSelectedCourseId(courseId);
+    setCurrentView('player');
   };
 
   const handlePaymentSuccess = (courseId: string) => {
@@ -59,7 +85,18 @@ const App: React.FC = () => {
     }
   };
 
-  const currentCourse = COURSES.find(c => c.id === selectedCourseId);
+  const currentCourse = courses.find(c => c.id === selectedCourseId);
+
+  // Vue Admin prioritaire
+  if (currentView === 'admin' && user?.role === 'admin') {
+    return (
+      <AdminDashboard 
+        courses={courses} 
+        onUpdateCourses={handleUpdateCourses} 
+        onClose={() => setCurrentView('home')} 
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-700">
@@ -68,16 +105,20 @@ const App: React.FC = () => {
         currentPage={currentView}
         user={user}
         onLogin={() => setShowAuthModal(true)}
+        onLogout={handleLogout}
       />
       
       {currentView === 'home' && (
-        <Home onSelectCourse={handleSelectCourse} />
+        <Home courses={courses} onSelectCourse={handleSelectCourse} />
       )}
       
       {currentView === 'player' && currentCourse && (
         <CoursePlayer 
           course={currentCourse} 
           onBack={() => setCurrentView('home')} 
+          user={user}
+          onPay={() => setCourseToPay(currentCourse)}
+          onLogin={() => setShowAuthModal(true)}
         />
       )}
 

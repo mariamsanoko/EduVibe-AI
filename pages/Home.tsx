@@ -1,25 +1,25 @@
 
 import React, { useState } from 'react';
-import { COURSES } from '../data/courses';
+import { Course } from '../types';
 import CourseCard from '../components/CourseCard';
 
 interface HomeProps {
+  courses: Course[];
   onSelectCourse: (id: string) => void;
 }
 
-const Home: React.FC<HomeProps> = ({ onSelectCourse }) => {
+const Home: React.FC<HomeProps> = ({ courses, onSelectCourse }) => {
   const [filter, setFilter] = useState('All');
-  const categories = ['All', ...new Set(COURSES.map(c => c.category))];
+  const categories = ['All', ...new Set(courses.map(c => c.category))];
 
   const filteredCourses = filter === 'All' 
-    ? COURSES 
-    : COURSES.filter(c => c.category === filter);
+    ? courses 
+    : courses.filter(c => c.category === filter);
 
   return (
     <main className="pb-12">
       {/* Hero Section with Video/Visual */}
       <section className="relative h-[80vh] min-h-[600px] w-full flex items-center justify-center overflow-hidden bg-slate-900 mb-12">
-        {/* Mock Video Background (using a high-quality GIF or Video Placeholder) */}
         <div className="absolute top-0 left-0 w-full h-full">
           <img 
             src="https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&q=80&w=2000" 
@@ -46,7 +46,10 @@ const Home: React.FC<HomeProps> = ({ onSelectCourse }) => {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button 
-              onClick={() => setFilter('Automation')}
+              onClick={() => {
+                const target = document.getElementById('catalog');
+                target?.scrollIntoView({ behavior: 'smooth' });
+              }}
               className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-500/30 hover:scale-105 active:scale-95"
             >
               Explorer les formations
@@ -66,7 +69,7 @@ const Home: React.FC<HomeProps> = ({ onSelectCourse }) => {
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-6" id="catalog">
         <section className="mb-16">
           <div className="flex items-center justify-between flex-wrap gap-4 mb-10">
             <div>

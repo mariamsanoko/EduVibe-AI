@@ -15,7 +15,7 @@ export const COURSES: Course[] = [
     isFree: false,
     price: 49.99,
     lessons: [
-      { id: 'l7', title: 'Introduction aux Noeuds', content: 'n8n est un outil puissant d\'automatisation...', duration: '15:00', type: 'video' },
+      { id: 'l7', title: 'Introduction aux Noeuds', content: 'n8n est un outil puissant d\'automatisation...', duration: '15:00', type: 'video', isFreePreview: true },
       { id: 'l8', title: 'Requêtes HTTP & Webhooks', content: 'Connecter des APIs externes est le cœur de l\'automatisation...', duration: '25:00', type: 'text' }
     ]
   },
@@ -31,7 +31,7 @@ export const COURSES: Course[] = [
     studentsCount: 1500,
     isFree: true,
     lessons: [
-      { id: 'l9', title: 'Les Fondamentaux du Vibe Coding', content: 'Qu\'est-ce que le Vibe Coding et pourquoi cela change tout ?', duration: '12:00', type: 'video' },
+      { id: 'l9', title: 'Les Fondamentaux du Vibe Coding', content: 'Qu\'est-ce que le Vibe Coding et pourquoi cela change tout ?', duration: '12:00', type: 'video', isFreePreview: true },
       { id: 'l10', title: 'Prompt Engineering avec Gemini 3', content: 'Techniques avancées pour la génération multi-modale.', duration: '20:00', type: 'quiz' }
     ]
   },
@@ -48,7 +48,7 @@ export const COURSES: Course[] = [
     isFree: false,
     price: 29.99,
     lessons: [
-      { id: 'l1', title: 'Introduction à React 19', content: 'Dans cette leçon, nous couvrons les nouveaux concepts...', duration: '12:00', type: 'video' },
+      { id: 'l1', title: 'Introduction à React 19', content: 'Dans cette leçon, nous couvrons les nouveaux concepts...', duration: '12:00', type: 'video', isFreePreview: true },
       { id: 'l2', title: 'Le rendu concurrent', content: 'Le rendu concurrent permet à React d\'interrompre un rendu long...', duration: '15:30', type: 'text' }
     ]
   }

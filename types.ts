@@ -6,6 +6,7 @@ export interface Lesson {
   duration: string;
   type: 'video' | 'text' | 'quiz';
   videoUrl?: string;
+  isFreePreview?: boolean; // Nouvelle propriété
 }
 
 export interface Course {
@@ -27,9 +28,11 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  role: 'user' | 'admin';
   isAuthenticated: boolean;
   is2FAVerified: boolean;
   purchasedCourses: string[];
+  phoneNumber?: string;
 }
 
 export interface ChatMessage {
