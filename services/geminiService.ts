@@ -2,31 +2,36 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ChatMessage, QuizQuestion } from "../types";
 
-const API_KEY = process.env.API_KEY || "";
-
 export class GeminiService {
   private ai: GoogleGenAI;
 
   constructor() {
-    this.ai = new GoogleGenAI({ apiKey: API_KEY });
+    // Fix: Always use named parameter for apiKey and use process.env.API_KEY directly as per guidelines.
+    this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
 
   async getTutorResponse(history: ChatMessage[], context: string): Promise<string> {
+    // Fix: Proper multi-turn content structure with roles and parts, and use systemInstruction in config.
     const response = await this.ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: [
-        { text: `System Context: You are a friendly and expert AI tutor for an online platform called EduVibe. The user is currently studying the following content: "${context}". Help them understand the concepts, answer questions, and provide examples. Keep it concise but educational.` },
-        ...history.map(msg => ({ text: `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.text}` }))
-      ],
+      contents: history.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }]
+      })),
+      config: {
+        systemInstruction: `Tu es un tuteur expert amical pour la plateforme EduVibe. Tu réponds TOUJOURS en Français. L'utilisateur étudie : "${context}". Aide-le à comprendre, donne des exemples concrets et sois encourageant.`,
+      },
     });
 
-    return response.text || "I'm sorry, I couldn't generate a response right now.";
+    // Fix: Access .text property directly (not a method).
+    return response.text || "Désolé, je n'ai pas pu générer de réponse pour le moment.";
   }
 
   async generateQuiz(lessonContent: string): Promise<QuizQuestion[]> {
+    // Fix: Structural content definition and response.text property access.
     const response = await this.ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Based on the following lesson content, generate 3 multiple-choice questions for a quiz. Content: "${lessonContent}"`,
+      contents: [{ parts: [{ text: `Génère 3 questions de quiz en FRANÇAIS basées sur : "${lessonContent}"` }] }],
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -49,7 +54,8 @@ export class GeminiService {
     });
 
     try {
-      return JSON.parse(response.text || "[]");
+      // Fix: Access .text property.
+      return JSON.parse(response.text?.trim() || "[]");
     } catch (e) {
       console.error("Failed to parse quiz JSON", e);
       return [];

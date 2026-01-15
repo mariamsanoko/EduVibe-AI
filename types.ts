@@ -15,18 +15,21 @@ export interface Course {
   thumbnail: string;
   instructor: string;
   category: string;
-  level: 'Beginner' | 'Intermediate' | 'Advanced';
+  level: 'Débutant' | 'Intermédiaire' | 'Avancé';
   lessons: Lesson[];
   rating: number;
   studentsCount: number;
+  isFree: boolean;
+  price?: number;
 }
 
-export interface UserProgress {
-  enrolledCourses: {
-    courseId: string;
-    completedLessons: string[];
-    lastAccessed: number;
-  }[];
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  isAuthenticated: boolean;
+  is2FAVerified: boolean;
+  purchasedCourses: string[];
 }
 
 export interface ChatMessage {

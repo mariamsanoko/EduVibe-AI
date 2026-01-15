@@ -1,6 +1,6 @@
 {
-  "name": "EduVibe AI - Smart Learning Platform",
-  "description": "A cutting-edge learning management system powered by Gemini AI, featuring personalized tutoring, automated quiz generation, and interactive course tracking.",
+  "name": "EduVibe AI - Plateforme d'Apprentissage Intelligente",
+  "description": "Système de gestion de l'apprentissage nouvelle génération propulsé par Gemini AI, avec tutorat personnalisé, authentification 2FA et paiements sécurisés.",
   "requestFramePermissions": [
     "microphone"
   ]

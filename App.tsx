@@ -1,10 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Home from './pages/Home';
 import CoursePlayer from './pages/CoursePlayer';
 import Profile from './pages/Profile';
-import { Course } from './types';
+import AuthSystem from './components/AuthSystem';
+import PaymentSystem from './components/PaymentSystem';
+import { Course, User } from './types';
 import { COURSES } from './data/courses';
 
 type View = 'home' | 'player' | 'profile';
@@ -12,21 +14,61 @@ type View = 'home' | 'player' | 'profile';
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('home');
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [courseToPay, setCourseToPay] = useState<Course | null>(null);
 
-  const handleNavigate = (view: string) => {
-    setCurrentView(view as View);
+  useEffect(() => {
+    const savedUser = localStorage.getItem('edu_user');
+    if (savedUser) setUser(JSON.parse(savedUser));
+  }, []);
+
+  const handleAuthSuccess = (userData: User) => {
+    setUser(userData);
+    localStorage.setItem('edu_user', JSON.stringify(userData));
+    setShowAuthModal(false);
   };
 
   const handleSelectCourse = (courseId: string) => {
-    setSelectedCourseId(courseId);
-    setCurrentView('player');
+    const course = COURSES.find(c => c.id === courseId);
+    if (!course) return;
+
+    if (course.isFree || (user && user.purchasedCourses.includes(courseId))) {
+      setSelectedCourseId(courseId);
+      setCurrentView('player');
+    } else {
+      if (!user) {
+        setShowAuthModal(true);
+      } else {
+        setCourseToPay(course);
+      }
+    }
   };
 
-  const currentCourse = COURSES.find(c => c.id === selectedCourseId) || COURSES[0];
+  const handlePaymentSuccess = (courseId: string) => {
+    if (user) {
+      const updatedUser = {
+        ...user,
+        purchasedCourses: [...user.purchasedCourses, courseId]
+      };
+      setUser(updatedUser);
+      localStorage.setItem('edu_user', JSON.stringify(updatedUser));
+      setCourseToPay(null);
+      setSelectedCourseId(courseId);
+      setCurrentView('player');
+    }
+  };
+
+  const currentCourse = COURSES.find(c => c.id === selectedCourseId);
 
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-700">
-      <Header onNavigate={handleNavigate} currentPage={currentView} />
+      <Header 
+        onNavigate={(view) => setCurrentView(view as View)} 
+        currentPage={currentView}
+        user={user}
+        onLogin={() => setShowAuthModal(true)}
+      />
       
       {currentView === 'home' && (
         <Home onSelectCourse={handleSelectCourse} />
@@ -40,7 +82,19 @@ const App: React.FC = () => {
       )}
 
       {currentView === 'profile' && (
-        <Profile onSelectCourse={handleSelectCourse} />
+        <Profile onSelectCourse={handleSelectCourse} user={user} />
+      )}
+
+      {showAuthModal && (
+        <AuthSystem onAuthSuccess={handleAuthSuccess} onClose={() => setShowAuthModal(false)} />
+      )}
+
+      {courseToPay && (
+        <PaymentSystem 
+          course={courseToPay} 
+          onSuccess={handlePaymentSuccess} 
+          onClose={() => setCourseToPay(null)} 
+        />
       )}
 
       <footer className="bg-white border-t border-slate-200 py-12 px-6 mt-20">
@@ -49,14 +103,12 @@ const App: React.FC = () => {
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">E</div>
             <span className="font-bold text-slate-800">EduVibe AI</span>
           </div>
-          
           <div className="flex gap-8">
-            <a href="#" className="hover:text-indigo-600 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-indigo-600 transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-indigo-600 transition-colors">Help Center</a>
+            <a href="#" className="hover:text-indigo-600 transition-colors">Confidentialité</a>
+            <a href="#" className="hover:text-indigo-600 transition-colors">CGU</a>
+            <a href="#" className="hover:text-indigo-600 transition-colors">Aide</a>
           </div>
-          
-          <p>© 2024 EduVibe AI Learning. All rights reserved.</p>
+          <p>© 2024 EduVibe AI Learning. Tous droits réservés.</p>
         </div>
       </footer>
     </div>

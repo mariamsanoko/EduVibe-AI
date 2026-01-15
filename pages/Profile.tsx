@@ -2,12 +2,15 @@
 import React from 'react';
 import { COURSES } from '../data/courses';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { User } from '../types';
 
 interface ProfileProps {
   onSelectCourse: (id: string) => void;
+  // Fix: Added user prop to match App.tsx usage
+  user: User | null;
 }
 
-const Profile: React.FC<ProfileProps> = ({ onSelectCourse }) => {
+const Profile: React.FC<ProfileProps> = ({ onSelectCourse, user }) => {
   const data = [
     { name: 'Mon', hours: 2.5 },
     { name: 'Tue', hours: 3.8 },
@@ -18,6 +21,11 @@ const Profile: React.FC<ProfileProps> = ({ onSelectCourse }) => {
     { name: 'Sun', hours: 1.5 },
   ];
 
+  // Fix: Use user prop to display actual user info or defaults
+  const userName = user?.name || 'Étudiant';
+  const avatarUrl = user ? `https://i.pravatar.cc/300?u=${user.id}` : "https://i.pravatar.cc/300?u=current-user";
+  const coursesCount = user?.purchasedCourses?.length || 0;
+
   return (
     <main className="max-w-7xl mx-auto px-6 py-12">
       <div className="flex flex-col md:flex-row gap-12">
@@ -26,17 +34,17 @@ const Profile: React.FC<ProfileProps> = ({ onSelectCourse }) => {
           <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm text-center">
             <div className="relative w-32 h-32 mx-auto mb-6">
               <img 
-                src="https://i.pravatar.cc/300?u=current-user" 
+                src={avatarUrl} 
                 alt="User Avatar" 
                 className="w-full h-full rounded-full object-cover border-4 border-indigo-50"
               />
               <div className="absolute bottom-1 right-1 w-8 h-8 bg-emerald-500 border-4 border-white rounded-full"></div>
             </div>
-            <h2 className="text-2xl font-bold text-slate-900">John Doe</h2>
+            <h2 className="text-2xl font-bold text-slate-900">{userName}</h2>
             <p className="text-slate-500 mb-6">Premium Student Since 2023</p>
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 bg-slate-50 rounded-2xl">
-                <span className="block text-2xl font-black text-indigo-600">12</span>
+                <span className="block text-2xl font-black text-indigo-600">{coursesCount}</span>
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Courses</span>
               </div>
               <div className="p-4 bg-slate-50 rounded-2xl">
