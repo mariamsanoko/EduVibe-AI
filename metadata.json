@@ -1,0 +1,7 @@
+{
+  "name": "EduVibe AI - Smart Learning Platform",
+  "description": "A cutting-edge learning management system powered by Gemini AI, featuring personalized tutoring, automated quiz generation, and interactive course tracking.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
